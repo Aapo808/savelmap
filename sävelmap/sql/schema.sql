@@ -1,26 +1,20 @@
- -- Sävelmap database schema and seed data
- -- Portable SQL (works on SQLite, PostgreSQL, MySQL with minor/no changes)
- CREATE DATABASE savelmap;
 
--- Drop existing objects (idempotent-ish for local development)
--- Comment these if you don't want destructive behavior.
 DROP TABLE IF EXISTS scale;
 DROP TABLE IF EXISTS note;
 
--- Core reference: chromatic notes
+
 CREATE TABLE note (
   id INTEGER PRIMARY KEY,
   name VARCHAR(3) NOT NULL UNIQUE -- C, C#, D, ... B
 );
 
--- Musical scales (immutable in app)
+
 CREATE TABLE scale (
-  id VARCHAR(64) PRIMARY KEY, -- e.g. 'major', 'natural_minor'
+  id VARCHAR(64) PRIMARY KEY,
   display_name VARCHAR(128) NOT NULL
 );
 
 
--- Seed: 12-note chromatic set (using sharps; flats can be mapped enharmonically in app)
 INSERT INTO note (id, name) VALUES
   (0, 'C'),
   (1, 'C#'),
