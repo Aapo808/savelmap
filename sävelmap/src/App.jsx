@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import './App.css'
 
 const SCALE_INTERVALS = {
   major: [0, 2, 4, 5, 7, 9, 11],
@@ -10,11 +11,26 @@ const SCALE_INTERVALS = {
   blues_minor: [0, 3, 5, 6, 7, 10],
 }
 
-const STRING_OPEN_NOTES = [4, 9, 2, 7, 11, 4] // E A D G B E (0..11)
+// Strings from top to bottom: high E, B, G, D, A, low E
+const STRING_OPEN_NOTES = [4, 11, 7, 2, 9, 4]
 
+// Fallback note names if `/api/notes` doesn't provide them yet
+const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+
+// Default data shown before API responds or when API is unavailable
+const DEFAULT_NOTES = NOTE_NAMES.map((name, i) => ({ id: i, name }))
+const DEFAULT_SCALES = [
+  { id: 'major', display_name: 'Major (Ionian)' },
+  { id: 'natural_minor', display_name: 'Natural Minor (Aeolian)' },
+  { id: 'dorian', display_name: 'Dorian' },
+  { id: 'mixolydian', display_name: 'Mixolydian' },
+  { id: 'major_pentatonic', display_name: 'Major Pentatonic' },
+  { id: 'minor_pentatonic', display_name: 'Minor Pentatonic' },
+  { id: 'blues_minor', display_name: 'Blues (Minor)' },
+]
 function App() {
-  const [notes, setNotes] = useState([])
-  const [scales, setScales] = useState([])
+  const [notes, setNotes] = useState(DEFAULT_NOTES)
+  const [scales, setScales] = useState(DEFAULT_SCALES)
   const [rootId, setRootId] = useState(0)
   const [scaleId, setScaleId] = useState('major')
 
@@ -26,36 +42,14 @@ function App() {
       setNotes(notesRes)
       setScales(scalesRes)
     }).catch(() => {
-      // In case API not available, fall back to defaults
-      setNotes([
-        { id: 0, name: 'C' },
-        { id: 1, name: 'C#' },
-        { id: 2, name: 'D' },
-        { id: 3, name: 'D#' },
-        { id: 4, name: 'E' },
-        { id: 5, name: 'F' },
-        { id: 6, name: 'F#' },
-        { id: 7, name: 'G' },
-        { id: 8, name: 'G#' },
-        { id: 9, name: 'A' },
-        { id: 10, name: 'A#' },
-        { id: 11, name: 'B' },
-      ])
-      setScales([
-        { id: 'major', display_name: 'Major (Ionian)' },
-        { id: 'natural_minor', display_name: 'Natural Minor (Aeolian)' },
-        { id: 'dorian', display_name: 'Dorian' },
-        { id: 'mixolydian', display_name: 'Mixolydian' },
-        { id: 'major_pentatonic', display_name: 'Major Pentatonic' },
-        { id: 'minor_pentatonic', display_name: 'Minor Pentatonic' },
-        { id: 'blues_minor', display_name: 'Blues (Minor)' },
-      ])
+      // If API is unavailable, keep defaults and continue — selects remain usable
+      console.warn('API /api/notes or /api/scales unavailable, using defaults')
     })
   }, [])
 
   const numFrets = 13 // 0..12 inclusive
   const fretWidth = 100
-  const stringHeight = 60
+  const stringHeight = 55
   const paddingTop = 10
   const paddingLeft = 0
 
@@ -71,7 +65,7 @@ function App() {
     <>
       <h1>Sävelmap</h1>
 
-      <div style={{ display: 'flex', gap: 16, marginBottom: 24 }}>
+      <div id='moi' style={{ display: 'flex', gap: 16, marginBottom: 24 }}>
         <label>
           Root:&nbsp;
           <select value={rootId} onChange={e => setRootId(Number(e.target.value))}>
@@ -91,13 +85,12 @@ function App() {
         </label>
       </div>
 
-      <svg height={paddingTop + stringHeight * 6 + 10} width={paddingLeft + fretWidth * numFrets + 200} xmlns="http://www.w3.org/2000/svg">
+      <svg height={paddingTop + stringHeight * 6 + 10} width={paddingLeft + fretWidth * numFrets + 10} xmlns="http://www.w3.org/2000/svg">
         {Array.from({ length: 6 }).map((_, stringIdx) => {
           const y = paddingTop + stringIdx * stringHeight
           return (
             <g key={`string-${stringIdx}`}>
-              <line x1={paddingLeft} y1={y} x2={paddingLeft + fretWidth * numFrets + 100} y2={y} stroke="black" strokeWidth="3" />
-              {Array.from({ length: numFrets }).map((_, fretIdx) => (
+              {stringIdx === 5 ? null : Array.from({ length: numFrets }).map((_, fretIdx) => (
                 <rect
                   key={`cell-${stringIdx}-${fretIdx}`}
                   width={fretWidth}
@@ -114,7 +107,7 @@ function App() {
         })}
 
         {/* Nut */}
-        <line x1={paddingLeft + fretWidth} y1={paddingTop - 10} x2={paddingLeft + fretWidth} y2={paddingTop + stringHeight * 6 + 10} stroke="black" strokeWidth="6" />
+        <line x1={paddingLeft + fretWidth} y1={paddingTop - 10} x2={paddingLeft + fretWidth} y2={paddingTop + stringHeight * 5 + 10} stroke="black" strokeWidth="6" />
 
         {/* Fretboard markers (3,5,7,9,12) */}
         {[3, 5, 7, 9, 12].map(f => (
@@ -124,7 +117,7 @@ function App() {
         {/* Scale notes */}
         {Array.from({ length: 6 }).map((_, stringIdx) => {
           const openNote = STRING_OPEN_NOTES[stringIdx]
-          const yCenter = paddingTop + stringIdx * stringHeight + stringHeight / 2
+          const yOnString = paddingTop + stringIdx * stringHeight // draw on top of the string line
           return (
             <g key={`notes-${stringIdx}`}>
               {Array.from({ length: numFrets }).map((_, fretIdx) => {
@@ -132,10 +125,18 @@ function App() {
                 const show = scaleNoteSet.has(noteId)
                 if (!show) return null
                 const cx = paddingLeft + fretIdx * fretWidth + fretWidth / 2
-                const cy = yCenter
+                const cy = yOnString
                 const root = isRoot(noteId)
+                // Use API-provided name if available, otherwise fallback to NOTE_NAMES
+                const noteName = (notes.find(n => n.id === noteId) || { name: NOTE_NAMES[noteId] }).name
+                const textColor = root ? '#000' : '#fff'
                 return (
-                  <circle key={`n-${stringIdx}-${fretIdx}`} cx={cx} cy={cy} r="12" fill={root ? '#f4b400' : '#111'} stroke={root ? '#000' : 'none'} />
+                  <g key={`n-${stringIdx}-${fretIdx}`}>
+                    <circle cx={cx} cy={cy} r="10" fill={root ? '#f4b400' : '#6e84ffff'} stroke={root ? '#000' : 'none'} />
+                    <text x={cx} y={cy} textAnchor="middle" dominantBaseline="middle" fill={textColor} style={{ pointerEvents: 'none', fontSize: 10, fontFamily: 'sans-serif' }}>
+                      {noteName}
+                    </text>
+                  </g>
                 )
               })}
             </g>
