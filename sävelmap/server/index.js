@@ -38,6 +38,22 @@ app.get('/api/scales', (_req, res) => {
 	}
 });
 
+app.get('/api/scale-intervals', (_req, res) => {
+	try {
+		const rows = db
+			.prepare(
+				`SELECT si.scale_id, i.id AS interval_id, i.name AS interval_name
+				 FROM scale_interval si
+				 JOIN intervalli i ON si.interval_id = i.id
+				 ORDER BY si.scale_id ASC, i.id ASC`
+			)
+			.all();
+		res.json(rows);
+	} catch (err) {
+		res.status(500).json({ error: 'Failed to fetch scale intervals' });
+	}
+});
+
 app.get('/', (_req, res, next) => {
 	const clientDist = path.resolve(__dirname, '../dist');
 	if (fs.existsSync(clientDist)) {
@@ -46,7 +62,7 @@ app.get('/', (_req, res, next) => {
 	return res.json({
 		palvelu: 'savelmap api',
 		viesti: 'Frontti pyörii @ "http://localhost:5173".',
-		endpointit: ['/api/health', '/api/notes', '/api/scales'],
+		endpointit: ['/api/health', '/api/notes', '/api/scales', '/api/scale-intervals'],
 	});
 });
 

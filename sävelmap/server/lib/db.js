@@ -13,13 +13,18 @@ function readSchema(sqlPath) {
 }
 
 function ensureSeeded(db, schemaSql) {
-	// Detect whether core tables exist
-	const stmt = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name IN ('note','scale')");
-	const existing = stmt.all();
-	if (existing.length < 2) {
+	const requiredTables = ['note', 'scale', 'scale_interval', 'intervalli'];
+	const placeholders = requiredTables.map(() => '?').join(',');
+	const stmt = db.prepare(
+		`SELECT name FROM sqlite_master WHERE type='table' AND name IN (${placeholders})`
+	);
+	const existing = stmt.all(requiredTables);
+
+	if (existing.length !== requiredTables.length) {
 		
-		db.exec('PRAGMA foreign_keys = ON;');
+		db.exec('PRAGMA foreign_keys = OFF;');
 		db.exec(schemaSql);
+		db.exec('PRAGMA foreign_keys = ON;');
 	}
 }
 
