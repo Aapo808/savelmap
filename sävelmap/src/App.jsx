@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import './App.css'
+import { preferredNoteName } from './constants/music'
 
 const SCALE_INTERVALS = {
   major: [0, 2, 4, 5, 7, 9, 11],
@@ -127,8 +128,9 @@ function App() {
                 const cx = paddingLeft + fretIdx * fretWidth + fretWidth / 2
                 const cy = yOnString
                 const root = isRoot(noteId)
-                // Use API-provided name if available, otherwise fallback to NOTE_NAMES
-                const noteName = (notes.find(n => n.id === noteId) || { name: NOTE_NAMES[noteId] }).name
+                // Use a preferred display name for this key: prefers flats/sharps depending on root
+                // This ensures keys like F will show 'Bb' (id 10) instead of 'A#'.
+                const noteName = preferredNoteName(noteId, rootId)
                 const textColor = root ? '#000' : '#fff'
                 return (
                   <g key={`n-${stringIdx}-${fretIdx}`}>
