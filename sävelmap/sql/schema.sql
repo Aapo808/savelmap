@@ -7,7 +7,8 @@ DROP TABLE IF EXISTS note;
 
 CREATE TABLE note (
   id INTEGER PRIMARY KEY,
-  name VARCHAR(3) NOT NULL UNIQUE -- C, C#, D, ... B
+  name VARCHAR(3) NOT NULL UNIQUE, -- sharp / natural spelling
+  flat_name VARCHAR(3) -- optional enharmonic flat spelling
 );
 
 CREATE TABLE intervalli (
@@ -42,19 +43,19 @@ INSERT INTO intervalli (id, name) VALUES
   (10, 'Minor Seventh'),
   (11, 'Major Seventh');
 
-INSERT INTO note (id, name) VALUES
-  (0, 'C'),
-  (1, 'C#'),
-  (2, 'D'),
-  (3, 'D#'),
-  (4, 'E'),
-  (5, 'F'),
-  (6, 'F#'),
-  (7, 'G'),
-  (8, 'G#'),
-  (9, 'A'),
-  (10, 'A#'),
-  (11, 'B');
+INSERT INTO note (id, name, flat_name) VALUES
+  (0, 'C', NULL),
+  (1, 'C#', 'Db'),
+  (2, 'D', NULL),
+  (3, 'D#', 'Eb'),
+  (4, 'E', NULL),
+  (5, 'F', NULL),
+  (6, 'F#', 'Gb'),
+  (7, 'G', NULL),
+  (8, 'G#', 'Ab'),
+  (9, 'A', NULL),
+  (10, 'A#', 'Bb'),
+  (11, 'B', NULL);
 
 -- Seed: Scales
 INSERT INTO scale (id, display_name) VALUES

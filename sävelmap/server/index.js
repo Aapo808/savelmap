@@ -22,7 +22,19 @@ app.get('/api/health', (_req, res) => {
 
 app.get('/api/notes', (_req, res) => {
 	try {
-		const rows = db.prepare('SELECT id, name FROM note ORDER BY id ASC').all();
+		const rows = db
+			.prepare(
+				`SELECT id,
+						name,
+						flat_name,
+						CASE
+							WHEN flat_name IS NOT NULL THEN name || '/' || flat_name
+							ELSE name
+						END AS display_name
+				 FROM note
+				 ORDER BY id ASC`
+			)
+			.all();
 		res.json(rows);
 	} catch (err) {
 		res.status(500).json({ error: 'Failed to fetch notes' });

@@ -12,6 +12,20 @@ const SCALE_INTERVALS = {
 
 const STRING_OPEN_NOTES = [4, 9, 2, 7, 11, 4] // E A D G B E (0..11)
 
+const ensureDisplayName = note => {
+  if (note.display_name) return note
+  if (!note.flat_name) {
+    return {
+      ...note,
+      display_name: note.name,
+    }
+  }
+  return {
+    ...note,
+    display_name: `${note.name}/${note.flat_name}`,
+  }
+}
+
 function App() {
   const [notes, setNotes] = useState([])
   const [scales, setScales] = useState([])
@@ -23,23 +37,23 @@ function App() {
       fetch('/api/notes').then(r => r.json()),
       fetch('/api/scales').then(r => r.json()),
     ]).then(([notesRes, scalesRes]) => {
-      setNotes(notesRes)
+      setNotes(notesRes.map(ensureDisplayName))
       setScales(scalesRes)
     }).catch(() => {
       // In case API not available, fall back to defaults
       setNotes([
-        { id: 0, name: 'C' },
-        { id: 1, name: 'C#' },
-        { id: 2, name: 'D' },
-        { id: 3, name: 'D#' },
-        { id: 4, name: 'E' },
-        { id: 5, name: 'F' },
-        { id: 6, name: 'F#' },
-        { id: 7, name: 'G' },
-        { id: 8, name: 'G#' },
-        { id: 9, name: 'A' },
-        { id: 10, name: 'A#' },
-        { id: 11, name: 'B' },
+        { id: 0, name: 'C', flat_name: null, display_name: 'C' },
+        { id: 1, name: 'C#', flat_name: 'Db', display_name: 'C#/Db' },
+        { id: 2, name: 'D', flat_name: null, display_name: 'D' },
+        { id: 3, name: 'D#', flat_name: 'Eb', display_name: 'D#/Eb' },
+        { id: 4, name: 'E', flat_name: null, display_name: 'E' },
+        { id: 5, name: 'F', flat_name: null, display_name: 'F' },
+        { id: 6, name: 'F#', flat_name: 'Gb', display_name: 'F#/Gb' },
+        { id: 7, name: 'G', flat_name: null, display_name: 'G' },
+        { id: 8, name: 'G#', flat_name: 'Ab', display_name: 'G#/Ab' },
+        { id: 9, name: 'A', flat_name: null, display_name: 'A' },
+        { id: 10, name: 'A#', flat_name: 'Bb', display_name: 'A#/Bb' },
+        { id: 11, name: 'B', flat_name: null, display_name: 'B' },
       ])
       setScales([
         { id: 'major', display_name: 'Major (Ionian)' },
@@ -76,7 +90,7 @@ function App() {
           Root:&nbsp;
           <select value={rootId} onChange={e => setRootId(Number(e.target.value))}>
             {notes.map(n => (
-              <option key={n.id} value={n.id}>{n.name}</option>
+              <option key={n.id} value={n.id}>{n.display_name ?? n.name}</option>
             ))}
           </select>
         </label>
