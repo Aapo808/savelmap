@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import './App.css'
 
 const SCALE_INTERVALS = {
   major: [0, 2, 4, 5, 7, 9, 11],
@@ -10,7 +11,8 @@ const SCALE_INTERVALS = {
   blues_minor: [0, 3, 5, 6, 7, 10],
 }
 
-const STRING_OPEN_NOTES = [4, 9, 2, 7, 11, 4] // E A D G B E (0..11)
+// Strings from top to bottom: high E, B, G, D, A, low E
+const STRING_OPEN_NOTES = [4, 11, 7, 2, 9, 4]
 
 const ensureDisplayName = note => {
   if (note.display_name) return note
@@ -29,6 +31,7 @@ const ensureDisplayName = note => {
 function App() {
   const [notes, setNotes] = useState([])
   const [scales, setScales] = useState([])
+  const [error, setError] = useState(null)
   const [rootId, setRootId] = useState(0)
   const [scaleId, setScaleId] = useState('major')
 
@@ -37,39 +40,18 @@ function App() {
       fetch('/api/notes').then(r => r.json()),
       fetch('/api/scales').then(r => r.json()),
     ]).then(([notesRes, scalesRes]) => {
+      setError(null)
       setNotes(notesRes.map(ensureDisplayName))
       setScales(scalesRes)
-    }).catch(() => {
-      // In case API not available, fall back to defaults
-      setNotes([
-        { id: 0, name: 'C', flat_name: null, display_name: 'C' },
-        { id: 1, name: 'C#', flat_name: 'Db', display_name: 'C#/Db' },
-        { id: 2, name: 'D', flat_name: null, display_name: 'D' },
-        { id: 3, name: 'D#', flat_name: 'Eb', display_name: 'D#/Eb' },
-        { id: 4, name: 'E', flat_name: null, display_name: 'E' },
-        { id: 5, name: 'F', flat_name: null, display_name: 'F' },
-        { id: 6, name: 'F#', flat_name: 'Gb', display_name: 'F#/Gb' },
-        { id: 7, name: 'G', flat_name: null, display_name: 'G' },
-        { id: 8, name: 'G#', flat_name: 'Ab', display_name: 'G#/Ab' },
-        { id: 9, name: 'A', flat_name: null, display_name: 'A' },
-        { id: 10, name: 'A#', flat_name: 'Bb', display_name: 'A#/Bb' },
-        { id: 11, name: 'B', flat_name: null, display_name: 'B' },
-      ])
-      setScales([
-        { id: 'major', display_name: 'Major (Ionian)' },
-        { id: 'natural_minor', display_name: 'Natural Minor (Aeolian)' },
-        { id: 'dorian', display_name: 'Dorian' },
-        { id: 'mixolydian', display_name: 'Mixolydian' },
-        { id: 'major_pentatonic', display_name: 'Major Pentatonic' },
-        { id: 'minor_pentatonic', display_name: 'Minor Pentatonic' },
-        { id: 'blues_minor', display_name: 'Blues (Minor)' },
-      ])
+    }).catch((err) => {
+      console.error('API /api/notes or /api/scales unavailable', err)
+      setError('API is unavailable. Please start the backend service and refresh.')
     })
   }, [])
 
   const numFrets = 13 // 0..12 inclusive
   const fretWidth = 100
-  const stringHeight = 60
+  const stringHeight = 55
   const paddingTop = 10
   const paddingLeft = 0
 
@@ -79,13 +61,36 @@ function App() {
     return set
   }, [rootId, scaleId])
 
+  const notesById = useMemo(() => {
+    const map = new Map()
+    notes.forEach(n => map.set(n.id, n))
+    return map
+  }, [notes])
+
   const isRoot = (noteId) => noteId % 12 === rootId
+
+  if (error) {
+    return (
+      <>
+        <h1>Sävelmap</h1>
+        <p style={{ color: '#f00' }}>{error}</p>
+      </>
+    )
+  }
+
+  if (!notes.length || !scales.length) {
+    return (
+      <>
+        <h1>Sävelmap</h1>
+        <p>Loading data from API...</p>
+      </>
+    )
+  }
 
   return (
     <>
       <h1>Sävelmap</h1>
-
-      <div style={{ display: 'flex', gap: 16, marginBottom: 24 }}>
+      <div id='moi' style={{ display: 'flex', gap: 16, marginBottom: 24 }}>
         <label>
           Root:&nbsp;
           <select value={rootId} onChange={e => setRootId(Number(e.target.value))}>
@@ -105,13 +110,12 @@ function App() {
         </label>
       </div>
 
-      <svg height={paddingTop + stringHeight * 6 + 10} width={paddingLeft + fretWidth * numFrets + 200} xmlns="http://www.w3.org/2000/svg">
+      <svg height={paddingTop + stringHeight * 6 + 10} width={paddingLeft + fretWidth * numFrets + 10} xmlns="http://www.w3.org/2000/svg">
         {Array.from({ length: 6 }).map((_, stringIdx) => {
           const y = paddingTop + stringIdx * stringHeight
           return (
             <g key={`string-${stringIdx}`}>
-              <line x1={paddingLeft} y1={y} x2={paddingLeft + fretWidth * numFrets + 100} y2={y} stroke="black" strokeWidth="3" />
-              {Array.from({ length: numFrets }).map((_, fretIdx) => (
+              {stringIdx === 5 ? null : Array.from({ length: numFrets }).map((_, fretIdx) => (
                 <rect
                   key={`cell-${stringIdx}-${fretIdx}`}
                   width={fretWidth}
@@ -128,7 +132,7 @@ function App() {
         })}
 
         {/* Nut */}
-        <line x1={paddingLeft + fretWidth} y1={paddingTop - 10} x2={paddingLeft + fretWidth} y2={paddingTop + stringHeight * 6 + 10} stroke="black" strokeWidth="6" />
+        <line x1={paddingLeft + fretWidth} y1={paddingTop - 10} x2={paddingLeft + fretWidth} y2={paddingTop + stringHeight * 5 + 10} stroke="black" strokeWidth="6" />
 
         {/* Fretboard markers (3,5,7,9,12) */}
         {[3, 5, 7, 9, 12].map(f => (
@@ -138,7 +142,7 @@ function App() {
         {/* Scale notes */}
         {Array.from({ length: 6 }).map((_, stringIdx) => {
           const openNote = STRING_OPEN_NOTES[stringIdx]
-          const yCenter = paddingTop + stringIdx * stringHeight + stringHeight / 2
+          const yOnString = paddingTop + stringIdx * stringHeight // draw on top of the string line
           return (
             <g key={`notes-${stringIdx}`}>
               {Array.from({ length: numFrets }).map((_, fretIdx) => {
@@ -146,10 +150,18 @@ function App() {
                 const show = scaleNoteSet.has(noteId)
                 if (!show) return null
                 const cx = paddingLeft + fretIdx * fretWidth + fretWidth / 2
-                const cy = yCenter
+                const cy = yOnString
                 const root = isRoot(noteId)
+                const noteName = notesById.get(noteId)?.display_name ?? notesById.get(noteId)?.name
+                if (!noteName) return null
+                const textColor = root ? '#000' : '#fff'
                 return (
-                  <circle key={`n-${stringIdx}-${fretIdx}`} cx={cx} cy={cy} r="12" fill={root ? '#f4b400' : '#111'} stroke={root ? '#000' : 'none'} />
+                  <g key={`n-${stringIdx}-${fretIdx}`}>
+                    <circle cx={cx} cy={cy} r="10" fill={root ? '#f4b400' : '#6e84ffff'} stroke={root ? '#000' : 'none'} />
+                    <text x={cx} y={cy} textAnchor="middle" dominantBaseline="middle" fill={textColor} style={{ pointerEvents: 'none', fontSize: 10, fontFamily: 'sans-serif' }}>
+                      {noteName}
+                    </text>
+                  </g>
                 )
               })}
             </g>
