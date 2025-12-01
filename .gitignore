@@ -1,0 +1,12 @@
+node_modules/
+dist/
+build/
+data/
+*.sqlite
+*.sqlite3
+.vscode/
+.idea/
+.DS_Store
+*.log
+.cache/
+coverage/
