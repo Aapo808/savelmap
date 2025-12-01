@@ -1,16 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import './App.css'
 
-const SCALE_INTERVALS = {
-  major: [0, 2, 4, 5, 7, 9, 11],
-  natural_minor: [0, 2, 3, 5, 7, 8, 10],
-  dorian: [0, 2, 3, 5, 7, 9, 10],
-  mixolydian: [0, 2, 4, 5, 7, 9, 10],
-  major_pentatonic: [0, 2, 4, 7, 9],
-  minor_pentatonic: [0, 3, 5, 7, 10],
-  blues_minor: [0, 3, 5, 6, 7, 10],
-}
-
 // Strings from top to bottom: high E, B, G, D, A, low E
 const STRING_OPEN_NOTES = [4, 11, 7, 2, 9, 4]
 
@@ -31,6 +21,7 @@ const ensureDisplayName = note => {
 function App() {
   const [notes, setNotes] = useState([])
   const [scales, setScales] = useState([])
+  const [scaleIntervalsByScale, setScaleIntervalsByScale] = useState({})
   const [error, setError] = useState(null)
   const [rootId, setRootId] = useState(0)
   const [scaleId, setScaleId] = useState('major')
@@ -39,12 +30,19 @@ function App() {
     Promise.all([
       fetch('/api/notes').then(r => r.json()),
       fetch('/api/scales').then(r => r.json()),
-    ]).then(([notesRes, scalesRes]) => {
+      fetch('/api/scale-intervals').then(r => r.json()),
+    ]).then(([notesRes, scalesRes, scaleIntervalsRes]) => {
       setError(null)
       setNotes(notesRes.map(ensureDisplayName))
       setScales(scalesRes)
+      const grouped = scaleIntervalsRes.reduce((acc, curr) => {
+        if (!acc[curr.scale_id]) acc[curr.scale_id] = []
+        acc[curr.scale_id].push(curr.interval_id)
+        return acc
+      }, {})
+      setScaleIntervalsByScale(grouped)
     }).catch((err) => {
-      console.error('API /api/notes or /api/scales unavailable', err)
+      console.error('API /api/notes, /api/scales or /api/scale-intervals unavailable', err)
       setError('API is unavailable. Please start the backend service and refresh.')
     })
   }, [])
@@ -56,10 +54,10 @@ function App() {
   const paddingLeft = 0
 
   const scaleNoteSet = useMemo(() => {
-    const intervals = SCALE_INTERVALS[scaleId] || []
+    const intervals = scaleIntervalsByScale[scaleId] || []
     const set = new Set(intervals.map(semi => (rootId + semi) % 12))
     return set
-  }, [rootId, scaleId])
+  }, [rootId, scaleId, scaleIntervalsByScale])
 
   const notesById = useMemo(() => {
     const map = new Map()
@@ -78,7 +76,9 @@ function App() {
     )
   }
 
-  if (!notes.length || !scales.length) {
+  const intervalsLoaded = Object.keys(scaleIntervalsByScale).length
+
+  if (!notes.length || !scales.length || !intervalsLoaded) {
     return (
       <>
         <h1>Sävelmap</h1>
