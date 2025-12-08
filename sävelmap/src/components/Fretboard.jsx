@@ -1,5 +1,5 @@
 import React from 'react'
-import { useAudio } from './AudioGuitar.jsx'
+import { useAudio } from './audioContext'
 import * as Tone from 'tone'
 
 // Simple Fretboard component. Keeps rendering logic readable and isolated.
@@ -13,7 +13,6 @@ import * as Tone from 'tone'
 export default function Fretboard({
   notes = [],
   scaleNoteSet = new Set(),
-  rootId = 0,
   stringOpenNotes = [4, 11, 7, 2, 9, 4],
   numFrets = 13,
   fretWidth = 100,
@@ -30,8 +29,20 @@ export default function Fretboard({
   const handleMouseEnter = (noteStr) => {
     if (mouseDown) play(noteStr)
   }
+  const height = paddingTop + stringHeight * 6 + 10
+  const width = paddingLeft + fretWidth * numFrets + 10
+
   return (
-    <svg height={paddingTop + stringHeight * 6 + 10} width={paddingLeft + fretWidth * numFrets + 10} xmlns="http://www.w3.org/2000/svg" onMouseDown={handleMouseDown} onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp}>
+    <svg
+      width="100%"
+      height={height}
+      viewBox={`0 0 ${width} ${height}`}
+      preserveAspectRatio="xMinYMin meet"
+      xmlns="http://www.w3.org/2000/svg"
+      onMouseDown={handleMouseDown}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}
+    >
       {Array.from({ length: 6 }).map((_, stringIdx) => {
         const y = paddingTop + stringIdx * stringHeight
         return (

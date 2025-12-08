@@ -1,7 +1,6 @@
-import React, { createContext, useContext, useEffect, useRef } from 'react'
+import React, { useEffect, useRef } from 'react'
 import * as Tone from 'tone'
-
-const AudioContext = createContext(null)
+import { AudioContext } from './audioContext'
 
 // AudioProvider exposes a simple `play(note, duration)` API.
 // This implementation creates an "electric guitar" tone by using
@@ -50,8 +49,10 @@ export function AudioProvider({ children }) {
 		reverb.generate()
 
 		return () => {
-			try { synthRef.current.instrument.dispose() } catch (e) {}
-			try { dist.dispose(); filter.dispose(); reverb.dispose(); delay.dispose() } catch (e) {}
+			const current = synthRef.current
+			try { current?.instrument?.dispose() } catch (e) { console.warn('dispose instrument failed', e) }
+			try { dist.dispose(); filter.dispose(); reverb.dispose(); delay.dispose() } catch (e) { console.warn('dispose effects failed', e) }
+			synthRef.current = null
 			window.removeEventListener('pointerdown', startOnce)
 		}
 	}, [])
@@ -66,12 +67,6 @@ export function AudioProvider({ children }) {
 	}
 
 	return <AudioContext.Provider value={{ play }}>{children}</AudioContext.Provider>
-}
-
-export function useAudio() {
-	const ctx = useContext(AudioContext)
-	if (!ctx) throw new Error('useAudio must be used inside AudioProvider')
-	return ctx
 }
 
 export default AudioProvider

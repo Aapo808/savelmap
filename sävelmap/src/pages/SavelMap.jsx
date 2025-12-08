@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import ControlPanel from '../components/ControlPanel.jsx'
 import Fretboard from '../components/Fretboard.jsx'
 import AudioProvider from '../components/AudioGuitar.jsx'
-
 import '../App.css'
+import Manuaali from '../components/manuaali.jsx'
 
 function SavelMap() {
   const [notes, setNotes] = useState([])
@@ -104,10 +104,12 @@ function SavelMap() {
               paddingLeft={paddingLeft}
               isRoot={isRoot}
             />
+            <Manuaali/>
           </>
         )}
       </>
     </AudioProvider>
+    
   )
 }
 
