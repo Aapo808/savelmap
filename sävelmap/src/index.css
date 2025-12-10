@@ -24,13 +24,15 @@ body {
   margin: 0;
   min-height: 100vh;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
   background: radial-gradient(circle at 25% 20%, rgba(124, 91, 255, 0.14), transparent 35%), radial-gradient(circle at 80% 0%, rgba(37, 197, 138, 0.14), transparent 30%), linear-gradient(180deg, #0a101d, #0c1323 50%, #0a0f1c 100%);
   color: var(--text);
   font-size: 16px;
   line-height: 1.5;
   padding: clamp(18px, 3vw, 36px);
+  padding-bottom: 0;
 }
 
 a {
@@ -46,7 +48,7 @@ a:hover {
 
 .app {
   width: 100%;
-  max-width: 1200px;
+  max-width: 1440px;
   display: flex;
   flex-direction: column;
   gap: calc(var(--gap) * 1.4);
@@ -82,7 +84,7 @@ input[type="text"]:focus {
 button {
   appearance: none;
   border: 0;
-  background: linear-gradient(120deg, var(--accent), #5a43d6);
+  background: linear-gradient(120deg, var(--accent), #5943d68a);
   color: white;
   padding: 10px 14px;
   border-radius: 12px;

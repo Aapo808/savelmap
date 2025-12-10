@@ -24,15 +24,9 @@ app.get('/api/notes', (_req, res) => {
 	try {
 		const rows = db
 			.prepare(
-				`SELECT id,
-						name,
-						flat_name,
-						CASE
-							WHEN flat_name IS NOT NULL THEN name || '/' || flat_name
-							ELSE name
-						END AS display_name
-				 FROM note
-				 ORDER BY id ASC`
+				`SELECT id, name, flat_name,
+						CASE WHEN flat_name IS NOT NULL THEN name || '/' || flat_name ELSE name END AS display_name
+				 FROM note ORDER BY id ASC`
 			)
 			.all();
 		res.json(rows);
@@ -53,11 +47,7 @@ app.get('/api/scales', (_req, res) => {
 app.get('/api/scale-intervals', (_req, res) => {
 	try {
 		const rows = db
-			.prepare(
-				`SELECT si.scale_id, si.interval_id
-				 FROM scale_interval si
-				 ORDER BY si.scale_id ASC, si.interval_id ASC`
-			)
+			.prepare(`SELECT si.scale_id, si.interval_id FROM scale_interval si ORDER BY si.scale_id ASC, si.interval_id ASC`)
 			.all();
 		res.json(rows);
 	} catch (err) {
@@ -65,31 +55,20 @@ app.get('/api/scale-intervals', (_req, res) => {
 	}
 });
 
-// Return scales together with the concrete note names for a given root.
-// Example: GET /api/scale-notes?root=5
 app.get('/api/scale-notes', (_req, res) => {
 	try {
 		const root = Number(_req.query.root) || 0;
-
-		// load notes map (id -> display_name)
 		const notesRows = db
-			.prepare(
-				`SELECT id, name, flat_name, CASE WHEN flat_name IS NOT NULL THEN name || '/' || flat_name ELSE name END AS display_name FROM note`
-			)
+			.prepare(`SELECT id, name, flat_name, CASE WHEN flat_name IS NOT NULL THEN name || '/' || flat_name ELSE name END AS display_name FROM note`)
 			.all();
 		const notesMap = new Map(notesRows.map(r => [r.id, r.display_name]));
 
-		// load scales + intervals
 		const rows = db
 			.prepare(
-				`SELECT 
-					s.id,
-					s.display_name,
-					GROUP_CONCAT(si.interval_id) AS intervals
+				`SELECT s.id, s.display_name, GROUP_CONCAT(si.interval_id) AS intervals
 				FROM scale s
 				LEFT JOIN scale_interval si ON s.id = si.scale_id
-				GROUP BY s.id
-				ORDER BY s.display_name ASC`
+				GROUP BY s.id ORDER BY s.display_name ASC`
 			)
 			.all();
 
@@ -97,13 +76,7 @@ app.get('/api/scale-notes', (_req, res) => {
 			const intervals = row.intervals ? row.intervals.split(',').map(Number) : [];
 			const note_ids = intervals.map(semi => (root + semi) % 12);
 			const note_names = note_ids.map(id => notesMap.get(id) || null);
-			return {
-				id: row.id,
-				display_name: row.display_name,
-				intervals,
-				note_ids,
-				note_names,
-			};
+			return { id: row.id, display_name: row.display_name, intervals, note_ids, note_names };
 		});
 
 		res.json(formatted);
@@ -113,23 +86,13 @@ app.get('/api/scale-notes', (_req, res) => {
 	}
 });
 
-app.get('/', (_req, res, next) => {
-	const clientDist = path.resolve(__dirname, '../dist');
-	if (fs.existsSync(clientDist)) {
-		return res.sendFile(path.join(clientDist, 'index.html'));
-	}
+app.get('/', (_req, res) => {
 	return res.json({
 		palvelu: 'savelmap api',
 		viesti: 'Frontti pyörii @ "http://localhost:5173".',
 		endpointit: ['/api/health', '/api/notes', '/api/scales', '/api/scale-notes'],
 	});
 });
-
-const clientDist = path.resolve(__dirname, '../dist');
-if (fs.existsSync(clientDist)) {
-	app.use(express.static(clientDist));
-	app.get('*', (_req, res) => res.sendFile(path.join(clientDist, 'index.html')));
-}
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {

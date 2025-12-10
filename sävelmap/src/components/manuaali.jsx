@@ -1,19 +1,45 @@
 import React from "react";
+
+const steps = [
+  {
+    title: "Valitse sävelaji",
+    body:
+      "Valitse ensin pohjasävel asteikolle, jonka haluat soittaa. Tämä määrittää kaikki merkityt sävelet kaulalla."
+  },
+  {
+    title: "Valitse asteikko",
+    body:
+      "Avaa asteikko-valikko ja poimi haluamasi asteikko. Voit vaihtaa asteikkoa lennosta ja nähdä eron heti kaulassa."
+  },
+  {
+    title: "Soita asteikkoa",
+    body:
+      "Klikkaa säveliä tai soita instrumentilla. 12. nauhan jälkeen säveljärjestys toistuu, joten kaulan logiikka pysyy samana kaikkialla."
+  }
+];
+
 export default function Manuaali() {
   return (
-    <div id="ohjeet" style={{ padding: "20px", maxWidth: "800px", margin: "0 auto" }}>
-     
-        <h2>Käyttöohjeet</h2>
-        <p>kitaran kaula on vasemmalta oikealle nousu järjestyksessä eli E, A, D, G, B, E SÄVELET ON AVOINKIELET /0 positiossa kielellä. Kun
-          soittelet asteikkoa, kahdentoista sävelet ovat täysin samat kuin nolla pisteessä eli koko nökemä logiikka on täsmän samassa paikassa.
-        </p>
-        <h3>1.Valitse sävelaji</h3>
-        <p>Ensiksi valitse mieluisa pohjasävel asteikolle jonka haluat soittaa.</p>
-        <h3>2.Valitse asteikko</h3>
-        <p>paina viereistä nappia ja valitse haluamasi asteikko.</p>
-        <h3>3.soita asteikkoa</h3>
-        <p>voit nyt leikkiä valiituilla asetuksilla esimerkiksi klikkaamalla säveliä tai jopa soittamalla ne instrumentilla!
-        </p>
+    <details id="ohjeet" className="manual">
+      <summary>Käyttöohjeet</summary> 
+
+      <div className="manual__content">
+        <div className="manual__intro">
+          <p>
+            Kitaran kaula kulkee vasemmalta oikealle E–A–D–G–B–E. Avoimet sävelet
+            löytyvät 0-positiosta ja toistuvat jokaisen 12. nauhan välein.
+          </p>
+        </div>
+
+        <ol className="manual__steps">
+          {steps.map((step, idx) => (
+            <li key={step.title}>
+              <h3>{`${idx + 1}. ${step.title}`}</h3>
+              <p>{step.body}</p>
+            </li>
+          ))}
+        </ol>
       </div>
+    </details>
   );
 }
