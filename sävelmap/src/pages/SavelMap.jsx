@@ -92,7 +92,8 @@ function SavelMap() {
                 onScaleChange={setScaleId} 
               />
             </div>
-            <Fretboard 
+            <div className="fretboard-wrap">
+              <Fretboard 
               notes={notes}
               scaleNoteSet={scaleNoteSet}
               rootId={rootId}
@@ -104,6 +105,7 @@ function SavelMap() {
               paddingLeft={paddingLeft}
               isRoot={isRoot}
             />
+            </div>
             <Manuaali/>
           </>
         )}

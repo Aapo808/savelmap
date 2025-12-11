@@ -1,0 +1,46 @@
+.control-panel {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+}
+
+.control-panel__label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.control-panel__label select {
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .control-panel {
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .control-panel {
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 16px;
+    width: 100%;
+  }
+
+  .control-panel__label {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .control-panel__label select {
+    flex: 1;
+    min-width: 0;
+  }
+}
+

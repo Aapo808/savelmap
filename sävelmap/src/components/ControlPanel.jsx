@@ -6,10 +6,12 @@ import React from 'react'
 // - scales: array of {id, display_name}
 // - rootId, scaleId: current selections
 // - onRootChange(id), onScaleChange(id)
+import './ControlPanel.css'
+
 export default function ControlPanel({ notes = [], scales = [], rootId, scaleId, onRootChange, onScaleChange }) {
   return (
-    <div style={{ display: 'flex', gap: 16, marginBottom: 24 }}>
-      <label>
+    <div className="control-panel">
+      <label className="control-panel__label">
         Root:&nbsp;
         <select value={rootId} onChange={e => onRootChange(Number(e.target.value))}>
           {notes.map(n => (
@@ -18,7 +20,7 @@ export default function ControlPanel({ notes = [], scales = [], rootId, scaleId,
         </select>
       </label>
 
-      <label>
+      <label className="control-panel__label">
         Scale:&nbsp;
         <select value={scaleId} onChange={e => onScaleChange(e.target.value)}>
           {scales.map(s => (

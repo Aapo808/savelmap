@@ -107,7 +107,7 @@ export default function Fretboard({
               return (
                 <g key={`n-${stringIdx}-${fretIdx}`} onMouseDown={() => play(noteStr)} onMouseEnter={() => handleMouseEnter(noteStr)} style={{ cursor: 'pointer' }}>
                   <circle cx={cx} cy={cy} r={10} fill={root ? '#f4b400' : '#6e84ffff'} stroke={root ? '#000' : 'none'} />
-                  <text x={cx} y={cy} textAnchor="middle" dominantBaseline="middle" fill={textColor} style={{ pointerEvents: 'none', fontSize: 10, fontFamily: 'sans-serif' }}>
+                  <text x={cx} y={cy} textAnchor="middle" dominantBaseline="middle" fill={textColor} className="fretboard-note-text" style={{ pointerEvents: 'none', fontFamily: 'sans-serif' }}>
                     {noteName}
                   </text>
                 </g>
